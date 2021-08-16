@@ -93,7 +93,6 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
   db.query(`
   WITH temp_answers AS (
     INSERT INTO answers(question_id, body, answerer_name, answerer_email, reported, helpfulness) VALUES ($1, $2, $3, $4, 'f', 0) RETURNING id)
-
     INSERT INTO answers_photos(answer_id, url)
     SELECT id,
     UNNEST(($5)::text[])
