@@ -14,7 +14,8 @@ app.get("/qa/questions/", (req, res) => {
 
   var count = req.query.count || 5
   var page = req.query.page || 1
-  console.log(page)
+  var number = (count * page - count)
+  values = [number, count, req.query.product_id]
 
   db.query(`
   SELECT questions.id AS question_id, questions.question_body, questions.question_date, questions.asker_name, questions.question_helpfulness, questions.reported,
@@ -27,10 +28,10 @@ app.get("/qa/questions/", (req, res) => {
   FROM questions
   LEFT JOIN answers
   ON questions.id = answers.question_id
-  WHERE questions.product_id = ${req.query.product_id} AND questions.reported = false
+  WHERE questions.product_id = $3 AND questions.reported = false
   GROUP BY questions.id
-  LIMIT ${count}
-  OFFSET (${count * page - count})`)
+  LIMIT $2
+  OFFSET $1`, values)
     .then((results) => {
       var resultObj = {
         product_id: req.query.product_id,
@@ -49,17 +50,19 @@ app.get("/qa/questions/", (req, res) => {
 app.get("/qa/questions/:question_id/answers", (req, res) => {
   var page = req.query.page || 1;
   var count = req.query.count || 5;
+  var number = (count * page - count)
+  values = [number, count, req.params.question_id]
 
   db.query(`
-  SELECT answers.id, answers.body, answers.date_written, answers.answerer_name, answers.helpfulness, ARRAY_AGG(JSON_BUILD_OBJECT('id', answers_photos.id, 'url', answers_photos.url))
-   AS photos
+  SELECT answers.id AS answer_id, answers.body, answers.date_written AS date, answers.answerer_name, answers.helpfulness, COALESCE(ARRAY_AGG(JSON_BUILD_OBJECT('id', answers_photos.id, 'url', answers_photos.url)) FILTER (WHERE answers_photos.id IS NOT NULL), '{}')
+  AS photos
   FROM answers
   LEFT JOIN answers_photos
   ON answers.id = answers_photos.answer_id
-  WHERE answers.question_id = ${req.params.question_id} AND answers.reported = false
+  WHERE answers.question_id = $3 AND answers.reported = false
   GROUP BY answers.id
-  LIMIT ${count}
-  OFFSET ${count * page - count}`)
+  LIMIT $2
+  OFFSET $1`, values)
     .then((results) => {
       var resultObj = {
         question: req.params.question_id,
@@ -76,7 +79,8 @@ app.get("/qa/questions/:question_id/answers", (req, res) => {
 
 /* --------------- POST REQUESTS ----------------- */
 app.post("/qa/questions", (req, res) => {
-  db.query(`INSERT INTO questions (product_id, question_body, asker_name, asker_email, reported, question_helpfulness) VALUES (${req.body.product_id}, '${req.body.body}', '${req.body.name}', '${req.body.email}', 'f', 0)`)
+  var values = [req.body.body, req.body.name, req.body.email, req.body.product_id]
+  db.query(`INSERT INTO questions (product_id, question_body, asker_name, asker_email, reported, question_helpfulness) VALUES ($4, $1, $2, $3, 'f', 0)`, values)
     .then((results) => {
       res.send('Created')
     })
@@ -110,11 +114,12 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
 /* --------------------PUT REQUESTS--------------------- */
 
 app.put('/qa/questions/:question_id/helpful', (req, res) => {
+  values = [req.params.question_id]
   db.query(`
   UPDATE questions
   SET question_helpfulness = question_helpfulness + 1
-  WHERE questions.id = ${req.params.question_id}
-  `)
+  WHERE questions.id = $1
+  `, values)
     .then(() => {
       res.send('Helpfulness Updated')
     })
@@ -124,11 +129,12 @@ app.put('/qa/questions/:question_id/helpful', (req, res) => {
 })
 
 app.put('/qa/questions/:question_id/report', (req, res) => {
+  values = [req.params.question_id]
   db.query(`
   UPDATE questions
   SET reported = 't'
-  WHERE questions.id = ${req.params.question_id}
-  `)
+  WHERE questions.id = $1
+  `, values)
     .then(() => {
       res.send('Question Reported')
     })
@@ -138,11 +144,12 @@ app.put('/qa/questions/:question_id/report', (req, res) => {
 })
 
 app.put('/qa/answers/:answer_id/helpful', (req, res) => {
+  values = [req.params.answer_id]
   db.query(`
   UPDATE answers
   SET helpfulness = helpfulness + 1
-  WHERE answers.id = ${req.params.answer_id}
-  `)
+  WHERE answers.id = $1
+  `, values)
     .then(() => {
       res.send('Helpfulness Updated')
     })
@@ -152,11 +159,12 @@ app.put('/qa/answers/:answer_id/helpful', (req, res) => {
 })
 
 app.put('/qa/answers/:answer_id/report', (req, res) => {
+  values = [req.params.answer_id]
   db.query(`
   UPDATE answers
   SET reported = 't'
-  WHERE answers.id = ${req.params.answer_id}
-  `)
+  WHERE answers.id = $1
+  `, values)
     .then(() => {
       res.send('Answer Reported')
     })
