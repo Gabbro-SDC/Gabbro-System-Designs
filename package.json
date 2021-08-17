@@ -3,10 +3,9 @@
   "description": "Retrieves a list of questions for a particular product. This list does not include any reported questions.",
   "version": "1.0.0",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
-    "start": "nodemon server/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "nodemon server/server.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -25,5 +24,9 @@
   "bugs": {
     "url": "https://github.com/Gabbro-SDC/Gabbro-System-Designs-QA/issues"
   },
-  "homepage": "https://github.com/Gabbro-SDC/Gabbro-System-Designs-QA#readme"
+  "homepage": "https://github.com/Gabbro-SDC/Gabbro-System-Designs-QA#readme",
+  "devDependencies": {
+    "jest": "^27.0.6",
+    "supertest": "^6.1.5"
+  }
 }

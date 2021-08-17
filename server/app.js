@@ -1,12 +1,7 @@
 const express = require('express')
 const app = express()
-const port = 3000
 const db = require('../server/db')
 
-
-app.listen(port, () => {
-  console.log(`App is listening on port: ${port}`)
-})
 
 app.use(express.json())
 
@@ -172,3 +167,5 @@ app.put('/qa/answers/:answer_id/report', (req, res) => {
       res.send(err)
     })
 })
+
+module.exports = app
