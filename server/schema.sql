@@ -62,4 +62,17 @@ CREATE TABLE answers_photos (
   ALTER COLUMN question_date SET DEFAULT current_timestamp;
 
   SELECT setval('answers_photos_id_seq', (select max(id) from answers_photos));
+
+  ------ index commands --------
+
+  CREATE INDEX questions_product_id_idx
+  ON questions (product_id);
+
+  CREATE INDEX answers_question_id_idx
+  ON answers (question_id);
+
+  CREATE INDEX answers_photos_answer_id_idx
+  ON answers_photos (answer_id);
+
+
 */
