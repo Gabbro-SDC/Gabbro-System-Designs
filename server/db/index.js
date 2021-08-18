@@ -1,10 +1,11 @@
 const { Pool } = require('pg')
+const setup = require('../../config.js')
 
 const pool = new Pool ({
-  "user": 'justincase',
-  "host": '127.0.0.1',
-  "database": 'QA',
-  "port": 5432,
+  "user": setup.user,
+  "host": setup.host,
+  "database": setup.database,
+  "port": setup.port,
 })
 
 module.exports = pool;

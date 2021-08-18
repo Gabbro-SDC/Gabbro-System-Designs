@@ -3,3 +3,4 @@ node_modules
 data
 app.test.js
 artilleryTest.json
+config.js
