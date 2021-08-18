@@ -5,12 +5,24 @@ const db = require('../server/db')
 
 app.use(express.json())
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
 app.get("/qa/questions/", (req, res) => {
+
+  var product_id = 0
+
+  if (req.query.test) {
+    product_id = getRandomInt(1000000)
+  } else {
+    product_id = req.query.product_id
+  }
 
   var count = req.query.count || 5
   var page = req.query.page || 1
   var number = (count * page - count)
-  values = [number, count, req.query.product_id]
+  var values = [number, count, product_id]
 
   db.query(`
   SELECT questions.id AS question_id, questions.question_body, questions.question_date, questions.asker_name, questions.question_helpfulness, questions.reported,
@@ -29,7 +41,7 @@ app.get("/qa/questions/", (req, res) => {
   OFFSET $1`, values)
     .then((results) => {
       var resultObj = {
-        product_id: req.query.product_id,
+        product_id: product_id,
         results: results.rows
       }
       res.send(resultObj)
@@ -43,10 +55,17 @@ app.get("/qa/questions/", (req, res) => {
 
 
 app.get("/qa/questions/:question_id/answers", (req, res) => {
+
+  var question_id = req.params.question_id;
+
+  if (req.params.question_id === 'test') {
+    question_id = getRandomInt(3535980)
+  }
+
   var page = req.query.page || 1;
   var count = req.query.count || 5;
   var number = (count * page - count)
-  values = [number, count, req.params.question_id]
+  var values = [number, count, question_id]
 
   db.query(`
   SELECT answers.id AS answer_id, answers.body, answers.date_written AS date, answers.answerer_name, answers.helpfulness, COALESCE(ARRAY_AGG(JSON_BUILD_OBJECT('id', answers_photos.id, 'url', answers_photos.url)) FILTER (WHERE answers_photos.id IS NOT NULL), '{}')
@@ -60,7 +79,7 @@ app.get("/qa/questions/:question_id/answers", (req, res) => {
   OFFSET $1`, values)
     .then((results) => {
       var resultObj = {
-        question: req.params.question_id,
+        question: question_id,
         page: page,
         count: count,
         results: results.rows
@@ -74,7 +93,14 @@ app.get("/qa/questions/:question_id/answers", (req, res) => {
 
 /* --------------- POST REQUESTS ----------------- */
 app.post("/qa/questions", (req, res) => {
-  var values = [req.body.body, req.body.name, req.body.email, req.body.product_id]
+
+  var product_id = req.body.product_id
+
+  if (req.query.test) {
+    product_id = getRandomInt(1000000)
+  }
+
+  var values = [req.body.body, req.body.name, req.body.email, product_id]
   db.query(`INSERT INTO questions (product_id, question_body, asker_name, asker_email, reported, question_helpfulness) VALUES ($4, $1, $2, $3, 'f', 0)`, values)
     .then((results) => {
       res.send('Created')
@@ -87,7 +113,13 @@ app.post("/qa/questions", (req, res) => {
 
 app.post('/qa/questions/:question_id/answers', (req, res) => {
 
-  var values = [req.params.question_id, req.body.body, req.body.name, req.body.email, req.body.photos]
+  var question_id = req.params.question_id
+
+  if (req.params.question_id === "test") {
+    question_id = getRandomInt(3535980)
+  }
+
+  var values = [question_id, req.body.body, req.body.name, req.body.email, req.body.photos]
 
   db.query(`
   WITH temp_answers AS (
@@ -109,7 +141,11 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
 /* --------------------PUT REQUESTS--------------------- */
 
 app.put('/qa/questions/:question_id/helpful', (req, res) => {
-  values = [req.params.question_id]
+  var question_id = req.params.question_id
+  if (req.params.question_id === "test") {
+    question_id = getRandomInt(3535980)
+  }
+  var values = [question_id]
   db.query(`
   UPDATE questions
   SET question_helpfulness = question_helpfulness + 1
@@ -124,7 +160,7 @@ app.put('/qa/questions/:question_id/helpful', (req, res) => {
 })
 
 app.put('/qa/questions/:question_id/report', (req, res) => {
-  values = [req.params.question_id]
+  var values = [req.params.question_id]
   db.query(`
   UPDATE questions
   SET reported = 't'
@@ -139,7 +175,11 @@ app.put('/qa/questions/:question_id/report', (req, res) => {
 })
 
 app.put('/qa/answers/:answer_id/helpful', (req, res) => {
-  values = [req.params.answer_id]
+  var answer_id = req.params.answer_id
+  if (req.params.answer_id === "true") {
+    answer_id = getRandomInt(6896323)
+  }
+  var values = [answer_id]
   db.query(`
   UPDATE answers
   SET helpfulness = helpfulness + 1
@@ -154,7 +194,7 @@ app.put('/qa/answers/:answer_id/helpful', (req, res) => {
 })
 
 app.put('/qa/answers/:answer_id/report', (req, res) => {
-  values = [req.params.answer_id]
+  var values = [req.params.answer_id]
   db.query(`
   UPDATE answers
   SET reported = 't'
