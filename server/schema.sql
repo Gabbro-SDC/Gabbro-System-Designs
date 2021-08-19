@@ -41,8 +41,8 @@ CREATE TABLE answers_photos (
 );
 
 /*
-
-  psql justincase  -h 127.0.0.1 -d test -f server/schema.sql
+  psql username -f
+  psql justincase  -h 127.0.0.1 -d QA -f server/schema.sql
 
   COPY questions FROM '/Users/justincase/Documents/Sample_Data/questions.csv' WITH DELIMITER ',' CSV HEADER;
 
@@ -53,15 +53,11 @@ CREATE TABLE answers_photos (
   ALTER TABLE questions
   ALTER COLUMN question_date TYPE timestamp with time zone
   USING to_timestamp(question_date/1000),
-  ALTER COLUMN question_date TYPE VARCHAR
-  USING to_char(question_date, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
   ALTER COLUMN question_date SET DEFAULT current_timestamp;
 
   -----------------
 
-  ALTER COLUMN question_date SET DEFAULT current_timestamp;
-
-  SELECT setval('answers_photos_id_seq', (select max(id) from answers_photos));
+  SELECT setval('reviews_id_seq', (select max(id) from reviews));
 
   ------ index commands --------
 
@@ -73,6 +69,5 @@ CREATE TABLE answers_photos (
 
   CREATE INDEX answers_photos_answer_id_idx
   ON answers_photos (answer_id);
-
 
 */
